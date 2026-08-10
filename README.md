@@ -16,6 +16,9 @@ agent-implementer/
     herdr-delegate.sh   # worktree + Herdr workspace/tabs + agent launch
 agent-diff-reviewer/
   SKILL.md              # read-only Haiku reviewer of the agent's diff
+tests/
+  delegate/             # hermetic shell tests for herdr-delegate.sh
+  reviewer/             # planted-defect recall eval for agent-diff-reviewer
 ```
 
 ## Skills
@@ -82,8 +85,14 @@ coding agent into the agent tab. Prints one JSON line on success:
 available, falling back to a generic label so the workflow still works offline.
 
 **Guard rails:** refuses to run if the branch or worktree dir already exists, and
-rolls back the workspace, worktree, and branch on any provisioning failure — a
-failed run leaves nothing orphaned.
+rolls back the workspace, worktree, and branch when a herdr call fails mid-run.
+
+One gap, caught by `tests/delegate`: if a herdr response *parses* wrong rather
+than failing outright, `jq_field`'s `die` runs inside a command substitution and
+kills the subshell instead of the script. `set -e` then exits with `WORKSPACE_ID`
+still empty, so the rollback's `[ -n "$WORKSPACE_ID" ]` guard skips it and the
+worktree and branch herdr already created are orphaned. Key the rollback on the
+worktree path existing instead.
 
 **Verified against** herdr 0.7.0 (protocol 14). Responses are JSON-RPC shaped, so
 ids live under `.result.*`, never at the top level.
@@ -99,6 +108,32 @@ ids live under `.result.*`, never at the top level.
   `herdr integration install claude`.
 - `herdr agent list` shows every running issue agent by name and pane, across all
   workspaces.
+
+## Tests
+
+```bash
+bash tests/run-all.sh                  # hermetic, free, ~5s
+bash tests/run-all.sh --with-reviewer  # adds the reviewer eval (API calls)
+```
+
+`tests/delegate` covers `herdr-delegate.sh` end to end with `herdr`, `gh` and the
+agent binary stubbed on `PATH` and every case in a throwaway git repo — argument
+parsing, missing binaries, both guard rails, agent launch, focus behaviour, title
+slugging, and rollback at three failure points. The stub records every herdr call
+and really runs `git worktree add`, so worktree and branch state is genuine.
+
+`tests/reviewer` measures the review pass rather than passing or failing it. Seven
+fixtures — five with one planted defect each (off-by-one, scope creep, unupdated
+call site, raw SQL, log/diff mismatch) and two clean ones — get built into a repo
+where `before/` is the committed baseline and `after/` is the agent's uncommitted
+work, then scored on whether the reviewer located the defect and whether it used
+the category the skill declares. Haiku currently locates 5/5 with no false
+positives, but labels them inconsistently: the skill's "What to check" headings
+say **Correctness** and **Log accuracy** while its report format says `Bug` and
+`Log`, so findings come back under categories nothing downstream will match.
+
+`RUNS=5` before drawing conclusions — one run is a sample, not a measurement.
+Details and knobs in [tests/README.md](tests/README.md).
 
 ## Assumptions
 
