@@ -1,0 +1,12 @@
+{
+  "issue": 104,
+  "findings": [
+    {
+      "category": "Convention|Bug|Correctness|Security",
+      "file": "app/Http/Controllers/TeamStatsController.php",
+      "anchor": "$rows = DB::select(",
+      "mentions": "Eloquent|raw|interpolat|injection|query builder|binding",
+      "note": "raw SQL with interpolated request input where the codebase uses Eloquent \u2014 also an injection path via ?days="
+    }
+  ]
+}
