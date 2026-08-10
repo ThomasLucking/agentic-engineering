@@ -20,7 +20,7 @@ All worktrees live under a `worktrees/` folder at the repo root — one per
 issue, so parallel work never collides:
 
 ```bash
-git worktree add worktree/<project>-issue-<N> -b fix/issue-<N>
+git worktree add worktrees/<project>-issue-<N> -b fix/issue-<N>
 ```
 
 Get it runnable so you can verify, not just read:
