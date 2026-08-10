@@ -17,65 +17,51 @@ human owns the commit and the PR.
 
 ### 1. Provision (worktree + Herdr workspace)
 
-Don't run `git worktree` by hand. Delegate the whole infrastructure setup —
-worktree creation, branch checkout, Herdr workspace, tabs, and agent
-launch — to the orchestration script in `tools/`, run from the repo root:
+Never run `git worktree` by hand. From the repo root:
 
 ```bash
 ./tools/herdr-delegate.sh <N>
 ```
 
-This does, in order:
-- `herdr worktree create` — makes `worktrees/<project>-issue-<N>` off a new
-  `fix/issue-<N>` branch *and* the Herdr workspace scoped to it in one call,
-  so parallel work on other issues never collides.
-- Renames that workspace's initial tab to **services** and runs
-  `./vendor/bin/sail up -d && npm run dev` in it via `herdr pane run`.
-- Creates a second **agent** tab with `herdr tab create --cwd <worktree>`.
-- Launches the coding agent into that tab via `herdr agent start`, seeded
-  with the issue number/title and pointed at this skill's Step 2 onward.
+It does, in order:
+- `herdr worktree create` — `worktrees/<project>-issue-<N>` off a new
+  `fix/issue-<N>` branch, plus the workspace scoped to it, in one call.
+- Renames the initial tab **services**, runs `./vendor/bin/sail up -d &&
+  npm run dev` there via `herdr pane run`.
+- Creates an **agent** tab (`herdr tab create --cwd <worktree>`).
+- Starts the coding agent in it (`herdr agent start`), seeded with the
+  issue number/title and pointed at Step 2 onward.
 
-The script prints a single JSON line on success — `workspace_id`,
-`agent_tab_id`, `services_tab_id`, `agent_pane_id`, `branch`, `worktree` —
-so you (or the agent itself, if launched from outside Herdr) can focus or
-attach to the right pane:
+On success it prints one JSON line — `workspace_id`, `agent_tab_id`,
+`services_tab_id`, `agent_pane_id`, `branch`, `worktree` — for:
 
 ```bash
 herdr tab focus <agent_tab_id>       # e.g. w7:t2
 herdr agent attach <agent_pane_id>   # e.g. w7:p3
 ```
 
-If you're already the agent that `herdr-delegate.sh` launched, you're
-already running inside the correct worktree and tab — skip straight to
-Step 2.
+If you *are* the launched agent, you're already in the right worktree and
+tab — go to Step 2.
 
-Guard rails already handled by the script: it refuses to run if the
-branch or worktree dir already exists, and on any provisioning failure it
-rolls back via `herdr worktree remove --workspace <id> --force` plus a
-`git worktree remove` / `git branch -D` fallback, so a failed run never
-leaves an orphaned worktree, branch, or workspace behind.
+Guard rails (handled by the script): refuses if the branch or worktree dir
+exists; rolls back on any failure (`herdr worktree remove --workspace <id>
+--force`, with `git worktree remove` / `git branch -D` fallback). No
+orphans left behind.
 
-Flags: `--agent <name>` picks the agent binary (default `claude`);
-`--no-agent` provisions the workspace and tabs without starting one;
-`--no-focus` provisions in the background instead of surfacing the new
-workspace at the end of the run.
+Flags: `--agent <name>` (default `claude`), `--no-agent` (provision only),
+`--no-focus` (provision in background).
 
-**Seeing the agents.** The whole point of this step is that every issue
-becomes a workspace you can watch live. Two things have to be true:
+**To see the agents**, both must hold:
+1. Attached to Herdr — the script talks to the server, so it works from
+   any shell, but a workspace created from a plain shell is invisible. Run
+   `herdr` to attach; it's already there. The script warns when it detects
+   it isn't running inside a Herdr pane.
+2. `claude` integration installed — `herdr integration status` shows
+   `claude: current`. Without it panes still run but every agent reads
+   `unknown`. Fix: `herdr integration install claude`.
 
-1. **Be attached to Herdr.** The script talks to the Herdr *server*, so it
-   works from any terminal — but if you run it from a plain shell, the
-   workspace is created where you can't see it. Run `herdr` to attach to
-   the persistent session; the new workspace is already there. The script
-   prints a reminder when it detects it isn't running inside a Herdr pane.
-2. **Keep the `claude` integration installed.** `herdr integration status`
-   should show `claude: current`. That hook is what reports each agent's
-   working / idle / blocked state up to the workspace switcher — without
-   it the panes still run, but every agent shows as `unknown`. Reinstall
-   with `herdr integration install claude`.
-
-Once attached, `herdr agent list` shows every running issue agent by name
-and pane, across all workspaces.
+`herdr agent list` then shows every running issue agent by name and pane,
+across workspaces.
 
 ### 2. Implement
 
@@ -129,17 +115,15 @@ Agent(subagent_type: "general-purpose", model: "haiku",
       prompt: <see the `agent-diff-reviewer` skill>)
 ```
 
-Give it the worktree path (the `worktree` field of the
-`tools/herdr-delegate.sh` JSON output), the
-issue number, and the log path. Wait for its report. Fix anything it
-flags as a correctness bug, then re-run pint and phpstan. Append
-unresolved or rejected findings to the log under `## Review notes` with a
-one-line reason.
+Give it the worktree path (the `worktree` field of the delegate script's
+JSON), the issue number, and the log path. Wait for its report. Fix
+anything it flags as a correctness bug, then re-run pint and phpstan.
+Append unresolved or rejected findings to the log under `## Review notes`
+with a one-line reason.
 
 ### 6. Stop
 
-Leave everything uncommitted. No `git commit`, no PR — that's the
-human's call. The Herdr workspace and its worktree stay up for the human
-to inspect; tearing it down (`herdr worktree remove --workspace <id>`,
-which closes the workspace and drops the checkout together) is also the
-human's call, not this skill's.
+Leave everything uncommitted. No `git commit`, no PR — that's the human's
+call. The workspace and worktree stay up for inspection; tearing them down
+(`herdr worktree remove --workspace <id>`, which closes both together) is
+also the human's call, not this skill's.
