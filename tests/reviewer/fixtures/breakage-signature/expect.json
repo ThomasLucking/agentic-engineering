@@ -1,0 +1,13 @@
+{
+  "issue": 103,
+  "findings": [
+    {
+      "category": "Breakage|Break|Bug|Correctness",
+      "file": "app/Console/Commands/SendWeeklyReport.php|app/Services/ReportBuilder.php",
+      "anchor_file": "before/app/Console/Commands/SendWeeklyReport.php",
+      "anchor": "$builder->build($user)",
+      "mentions": "SendWeeklyReport|reports:weekly|weekly",
+      "note": "build() gained a required second argument; the console command still calls it with one and will fatal at runtime"
+    }
+  ]
+}

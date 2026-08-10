@@ -1,0 +1,11 @@
+{
+  "issue": 101,
+  "findings": [
+    {
+      "category": "Bug|Correctness",
+      "file": "app/Services/ExportService.php",
+      "anchor": "$pages = intdiv($total",
+      "note": "intdiv drops the remainder, so the final partial page is never exported"
+    }
+  ]
+}

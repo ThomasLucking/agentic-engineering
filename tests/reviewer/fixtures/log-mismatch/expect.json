@@ -1,0 +1,13 @@
+{
+  "issue": 105,
+  "findings": [
+    {
+      "category": "Log|Bug|Correctness|Scope",
+      "file": "trace|Invite|migration",
+      "anchor_file": "trace.md",
+      "anchor": "database/migrations/2024_05_02_000000",
+      "mentions": "migration|index|does not exist|no such|not present|missing|never",
+      "note": "the log claims a unique index migration that is not in the diff \u2014 the concurrency acceptance criterion is unmet"
+    }
+  ]
+}

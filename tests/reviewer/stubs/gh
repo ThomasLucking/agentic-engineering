@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Stub `gh` for the agent-diff-reviewer eval. Serves the fixture's issue.md
+# for `gh issue view <N>` so the reviewer can read the issue without a real
+# GitHub repo behind the worktree.
+#
+#   GH_ISSUE_FILE=<path to fixture issue.md>
+
+set -u
+file="${GH_ISSUE_FILE:?GH_ISSUE_FILE not set}"
+
+case "${1:-} ${2:-}" in
+  "issue view")
+    case " $* " in
+      *" --json "*)
+        title="$(sed -n 's/^title:[[:space:]]*//p' "$file" | head -1)"
+        body="$(sed '1,/^--$/d' "$file")"
+        jq -n --arg t "$title" --arg b "$body" '{title:$t, body:$b, state:"OPEN"}'
+        ;;
+      *)
+        cat "$file"
+        ;;
+    esac
+    ;;
+  *)
+    printf 'stub gh: unsupported command: %s\n' "$*" >&2
+    exit 1
+    ;;
+esac
