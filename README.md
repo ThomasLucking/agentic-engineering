@@ -1,4 +1,4 @@
-# benchmark-ai
+# agent-workflow
 
 Claude Code skills for handing a single GitHub issue to an agent, implementing it
 in an isolated worktree, and getting it back review-ready — uncommitted, with a
