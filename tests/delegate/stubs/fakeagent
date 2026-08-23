@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Stub coding agent — exists only so `need_bin "$AGENT_NAME"` resolves.
-exit 0

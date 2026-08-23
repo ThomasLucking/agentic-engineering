@@ -1,5 +1,0 @@
-{
-  "issue": 107,
-  "findings": [],
-  "note": "behaviour-preserving refactor with every call site updated — any finding here is a false positive"
-}
