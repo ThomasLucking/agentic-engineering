@@ -2,9 +2,9 @@
 name: fix-simple-issues-implementer
 description: >
   Implements a single, well-scoped GitHub issue in an isolated worktree,
-  validates it, logs it for human review, and has an Opus agent run
-  /code-review on the diff. Trigger on "fix issue #42", "implement issue
-  17", or an issue labeled "Agent". Never commit or open a PR.
+  validates it, and has an Opus agent run /code-review on the diff.
+  Trigger on "fix issue #42", "implement issue 17", or an issue labeled
+  "Agent". Never commit or open a PR.
 ---
 
 ## Purpose
@@ -48,51 +48,24 @@ Both must be clean before it's done:
 ./vendor/bin/phpstan analyse
 ```
 
-### 4. Log
+### 4. Review pass
 
-Write `docs/logs/issue-<N>-agent-trace.md`. Terse and scannable — bullets,
-not paragraphs. A reviewer should orient in under a minute.
-
-```markdown
-# Issue #<N>: <short title>
-
-## The issue
-<2–3 lines: what was broken/missing and the root cause.>
-
-## Changes
-- `<file>` — <what changed> → <why>
-- `<file>` — <what changed> → <why>
-
-## How it fits together
-<3–5 lines or a short list: which files/folders were touched and how they
-connect to solve the issue. e.g. request → FormRequest validates →
-Controller delegates → Service applies rule → Model persists.>
-```
-
-Rules: no change without a `why`. No paragraph over ~40 words. Skip
-anything the diff already says plainly.
-
-### 5. Review pass
-
-After the log is written, spawn a review agent that chains into the
-`/code-review` skill itself — don't inline its instructions here:
+Spawn a review agent that chains into the `/code-review` skill itself —
+don't inline its instructions here:
 
 ```
 Agent(subagent_type: "general-purpose", model: "opus",
       description: "Review issue #<N> changes",
       prompt: "Use the Skill tool to load the `code-review` skill, then
                 follow it against the diff in worktree <worktree path>
-                for issue #<N>. Read docs/logs/issue-<N>-agent-trace.md
-                first for the intended approach.")
+                for issue #<N>.")
 ```
 
-Give it the worktree path, the issue number, and the log path. Wait for its
-report. Fix every **Critical** and **Important** finding, then re-run pint
-and phpstan. Append unresolved or rejected findings (including all
-**Suggestion**s you didn't act on) to the log under `## Review notes` with
-a one-line reason.
+Give it the worktree path and the issue number. Wait for its report. Fix
+every **Critical** and **Important** finding, then re-run pint and
+phpstan.
 
-### 6. Stop
+### 5. Stop
 
 Leave everything uncommitted. No `git commit`, no PR — that's the human's
 call.
