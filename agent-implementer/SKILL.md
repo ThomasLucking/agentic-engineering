@@ -32,7 +32,7 @@ npm run dev   # separate terminal
 
 ### 2. Implement
 
-Stay inside the issue's scope. Use the `grill` skill — don't guess — when:
+Stay inside the issue's scope. Use the `grill-with-docs` skill — don't guess — when:
 
 - acceptance criteria or expected behavior are ambiguous
 - two reasonable approaches exist and the issue doesn't pick one
