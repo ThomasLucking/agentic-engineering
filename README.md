@@ -9,29 +9,41 @@ The human owns the commit and the PR. The agents never do.
 ## Layout
 
 ```
-agent-implementer/
-  SKILL.md              # provisions a git worktree, implements, validates, reviews
+agent-implement-laravel/
+  SKILL.md              # Laravel/Sail-specific: worktree, implement, validate, review
+agent-implement-generic/
+  SKILL.md              # stack-agnostic: detects the project's own tooling
 ```
 
-`~/.claude/skills/agent-implementer` is a symlink into this repo — edit the
-skill here, not the installed copy.
+`~/.claude/skills/agent-implement-laravel` and
+`~/.claude/skills/agent-implement-generic` are symlinks into this repo — edit
+the skills here, not the installed copies.
 
 ## Skills
 
-### `fix-simple-issues-implementer`
+### `fix-simple-issues-implementer` (`agent-implement-laravel`)
 
-Takes one well-scoped issue and runs it end to end:
+Laravel/Sail-specific. Takes one well-scoped issue and runs it end to end:
 
 1. **Provision** — isolated worktree at `worktrees/<project>-issue-<N>` on branch
-   `fix/issue-<N>`, with services (`sail up -d`, `npm run dev`) running.
-2. **Implement** — stays in scope; escalates to the `grill` skill when acceptance
-   criteria, approach, or technical detail are ambiguous.
-3. **Validate** — `./vendor/bin/pint`, `./vendor/bin/phpstan analyse`, and
+   `fix/issue-<N>`, with `sail up -d` and `npm run dev` running.
+2. **Implement** — stays in scope; escalates to the `grill-with-docs` skill when
+   acceptance criteria, approach, or technical detail are ambiguous.
+3. **Self-verify** — runs the `tdd` skill to red-green the fix before handing off.
+4. **Validate** — `./vendor/bin/pint`, `./vendor/bin/phpstan analyse`, and
    `./vendor/bin/sail artisan test` must be clean.
-4. **Review pass** — spawns an Opus agent that chains into the `/code-review`
+5. **Review pass** — spawns an Opus agent that chains into the `/code-review`
    skill via the `Skill` tool (rather than inlining its instructions), fixes
    every Critical/Important finding, then re-runs validation.
-5. **Stop** — leaves everything uncommitted.
+6. **Stop** — leaves everything uncommitted.
+
+### `fix-simple-issues-implementer-generic` (`agent-implement-generic`)
+
+Same flow, stack-agnostic. Detects the project's own dev/start command
+(`docker-compose.yml`, `Makefile`, `package.json` scripts, `Procfile`, …) and
+its own format/lint/test tooling via `agent-state test`/`agent-state lint`
+(Jest, Vitest, Mocha, pytest, PHPUnit, cargo, go, ESLint, golangci-lint,
+clippy, PHPStan, ruff, etc.) instead of assuming Laravel.
 
 ## Tests
 
@@ -41,5 +53,5 @@ Anthropic's shipped skill, not something this repo evaluates.
 
 ## Assumptions
 
-The validation and services commands are Laravel-specific (Sail, Pint, PHPStan,
-Vite). Point steps 1 and 3 at your own toolchain to use these skills elsewhere.
+`agent-implement-laravel` is Laravel-specific (Sail, Pint, PHPStan, Vite). Use
+`agent-implement-generic` for any other stack.
