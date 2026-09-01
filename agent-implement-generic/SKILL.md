@@ -65,6 +65,8 @@ before the fix isn't testing anything — flag it and rewrite it.
 Write the minimum code needed to make the tests pass (green), staying
 inside the issue's scope. Don't expand beyond what the tests require.
 
+If implementation reveals scope beyond what the tests anticipated, stop and use grill-with-docs rather than expanding silently.
+
 ### 3. Validate
 
 Detect the project's own tooling rather than assuming a stack. Prefer
