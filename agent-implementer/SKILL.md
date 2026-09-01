@@ -41,11 +41,12 @@ Stay inside the issue's scope. Use the `grill` skill — don't guess — when:
 
 ### 3. Validate
 
-Both must be clean before it's done:
+All three must be clean before it's done:
 
 ```bash
 ./vendor/bin/pint
 ./vendor/bin/phpstan analyse
+./vendor/bin/sail artisan test
 ```
 
 ### 4. Review pass
@@ -62,8 +63,8 @@ Agent(subagent_type: "general-purpose", model: "opus",
 ```
 
 Give it the worktree path and the issue number. Wait for its report. Fix
-every **Critical** and **Important** finding, then re-run pint and
-phpstan.
+every **Critical** and **Important** finding, then re-run pint, phpstan,
+and the test suite.
 
 ### 5. Stop
 
