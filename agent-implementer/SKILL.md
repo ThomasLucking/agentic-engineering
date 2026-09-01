@@ -39,7 +39,16 @@ Stay inside the issue's scope. Use the `grill-with-docs` skill — don't guess �
 - technical detail is missing (schema, API shape, edge cases)
 - mid-way you find the issue is bigger than stated (expand, split, or stop?)
 
-### 3. Validate
+### 3. Self-verify (TDD)
+
+Before validating or requesting review, use the Skill tool to load the
+`tdd` skill and follow it to verify your own implementation — write or
+extend tests that pin down the issue's acceptance criteria, confirm they
+fail without the fix and pass with it (red-green), and close any gap
+between "the code runs" and "the behavior is proven." Don't hand off
+unverified work.
+
+### 4. Validate
 
 All three must be clean before it's done:
 
@@ -49,7 +58,7 @@ All three must be clean before it's done:
 ./vendor/bin/sail artisan test
 ```
 
-### 4. Review pass
+### 5. Review pass
 
 Spawn a review agent that chains into the `/code-review` skill itself —
 don't inline its instructions here:
@@ -66,7 +75,7 @@ Give it the worktree path and the issue number. Wait for its report. Fix
 every **Critical** and **Important** finding, then re-run pint, phpstan,
 and the test suite.
 
-### 5. Stop
+### 6. Stop
 
 Leave everything uncommitted. No `git commit`, no PR — that's the human's
 call.
